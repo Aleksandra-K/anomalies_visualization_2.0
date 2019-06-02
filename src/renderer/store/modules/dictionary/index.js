@@ -39,18 +39,17 @@ const getters = {
         return traces;
     },
 
-    decodeSymbol(state, symbol){
+    decodeSymbol: state => symbol => {
         return state.symbols[symbol];
     },
 
-    decodeTransition(state, event) {
+    decodeTransition: state => event => {
         return state.transitions[event];
     }
 }
 
 const actions = {
     addInfo ({state, commit}, payload) {
-        console.log("hello from dict");
         switch (payload.type) {
             case 'cluster':
                 commit('setEventLogs', payload.obj);

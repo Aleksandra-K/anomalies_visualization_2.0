@@ -32,7 +32,6 @@
 <script>
   const {app, BrowserWindow} = require('electron');
   const { dialog } = require('electron').remote;
-  import {mapActions} from 'vuex'
 
   import {loadCSV, loadJSON} from "./utils/FileHandler"
   import {
@@ -52,7 +51,7 @@
 
     methods: {
       loadSelected(place) {
-        var that = this.$store
+        var that = this.$store;
         dialog.showOpenDialog({ filters: [
 
             { name: 'decoders', extensions: ['json'] },
@@ -63,19 +62,31 @@
           const fileName = fileNames[0];
 
           if (place.title === UI_ACTIONS.FILE_LOGS ) {
-            let log = loadCSV(fileName);
-            let payload = {obj: log, type: STORE_DICT_ACTIONS.LOAD_LOGS}
-            that.dispatch("dictionary/addInfo", payload)
+            try {
+              let log = loadCSV(fileName);
+              let payload = {obj: log, type: STORE_DICT_ACTIONS.LOAD_LOGS}
+              that.dispatch("dictionary/addInfo", payload)
+            } catch (e) {
+              alert("При загрузке файла с аномальными трассами возникла ошибка")
+            }
           }
           else if (place.title === UI_ACTIONS.EVENT_DECODER) {
-            let decoder = loadJSON(fileName);
-            let payload = {obj: decoder, type: STORE_DICT_ACTIONS.LOAD_EVENTS}
-            that.dispatch("dictionary/addInfo", payload)
+            try {
+              let decoder = loadJSON(fileName);
+              let payload = {obj: decoder, type: STORE_DICT_ACTIONS.LOAD_EVENTS}
+              that.dispatch("dictionary/addInfo", payload)
+            } catch (e) {
+              alert("При загрузке декодера возникла ошибка")
+            }
           }
           else {
-            let decoder = loadJSON(fileName);
-            let payload = {obj: decoder, type: STORE_DICT_ACTIONS.LOAD_SYMBOLS}
-            that.dispatch("dictionary/addInfo", payload)
+            try {
+              let decoder = loadJSON(fileName);
+              let payload = {obj: decoder, type: STORE_DICT_ACTIONS.LOAD_SYMBOLS}
+              that.dispatch("dictionary/addInfo", payload)
+            } catch (e) {
+              alert("При загрузке декодера возникла ошибка")
+            }
           }
         });
       }

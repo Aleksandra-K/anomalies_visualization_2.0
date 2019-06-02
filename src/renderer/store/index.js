@@ -7,7 +7,6 @@ import mutations from './mutations'
 import actions from './actions'
 
 import dictionary from './modules/dictionary'
-import models from './modules/models'
 
 Vue.use(Vuex);
 
@@ -18,8 +17,7 @@ export default new Vuex.Store({
   mutations,
   actions,
   modules: {
-    dictionary,
-    models
+    dictionary
   },
   strict: process.env.NODE_ENV !== 'production'
 })

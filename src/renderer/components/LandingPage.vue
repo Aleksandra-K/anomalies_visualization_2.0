@@ -69,23 +69,16 @@
         data () {
             return {
                 traces: [],
-                currentCluster: [],
-                //graph: {},
-                //paper: {}
+                currentCluster: []
             }
         },
-        mounted () {
-            // this.graph = new joint.dia.Graph;
-        },
-        // props: {
-        //     traces: [],
-        //     currentCluster: []
-        // },
         computed: {
             ...mapGetters({
                 clusterLabels:'dictionary/getDistinctClusters',
                 getTracesByCluster:'dictionary/getTracesByCluster',
-                getArrayOfTraces: 'dictionary/getListOfTraces'
+                getArrayOfTraces: 'dictionary/getListOfTraces',
+                decodeSymbol: 'dictionary/decodeSymbol',
+                decodeTransition: 'dictionary/decodeTransition'
             })
         },
         methods: {
@@ -175,13 +168,19 @@
                                 let el = new joint.shapes.standard.Rectangle();
                                 el.resize(100, 50);
                                 el.position(width, height + 40);
+                                let text = currTr.replace(SYMBOL_TIME, "");
+                                text = text.replace(SYMBOL_BAD, "");
+                                if (!text.includes(SYMBOL_LOOP_START)) {
+                                    text = this.decodeSymbol(text);
+                                    text = this.decodeTransition(text);
+                                }
                                 if (currTr.includes(SYMBOL_BAD)) {
                                     el.attr({
                                         body: {
                                             fill: '#ff7070',
                                         },
                                         label: {
-                                            text: currTr,
+                                            text: text,
                                             fill: 'navy(16)',
                                             textWrap: 'true'
                                         }
@@ -193,7 +192,7 @@
                                             fill: '#89baff'
                                         },
                                         label: {
-                                            text: currTr,
+                                            text: text,
                                             fill: 'navy(16)',
                                             textWrap: 'true'
                                         }
