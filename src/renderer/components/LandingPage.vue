@@ -235,7 +235,7 @@
                                         }
                                     });
                                 } else {
-                                    link = new joint.shapes.pn.Link();
+                                    link = new joint.shapes.standard.Link();
                                 }
                                 if (currP === tuple[0]) {
                                     link.source(graphPlaces[currP]);
@@ -249,10 +249,21 @@
 
 
                                 if (loopTrans.length > 0) {
-                                    let link = new joint.shapes.pn.Link();
+                                    if (typeof number === 'undefined')
+                                        number = "";
+                                    let link = new joint.shapes.standard.Link({
+                                        labels: [{
+                                            attrs: { text: { text: number }},
+                                            position: {
+                                                offset: 15,
+                                                distance: 0.5
+                                            }
+                                        }]
+                                    });
                                     let loop = loopTrans.pop();
                                     link.source(graphPlaces[currP]);
                                     link.target(graphTrans[loop]);
+                                    link.attr('line/stroke', '#fe854f');
                                     graphLinks.push(link);
                                 }
 
@@ -275,9 +286,18 @@
                                     });
                                     graphTrans[extraTrans] = el;
 
-                                    let link = new joint.shapes.standard.Link();
+                                    let link = new joint.shapes.standard.Link({
+                                        labels: [{
+                                            attrs: { text: { text: number }},
+                                            position: {
+                                                offset: 15,
+                                                distance: 0.5
+                                            }
+                                        }]
+                                    });
                                     link.target(graphPlaces[currP]);
                                     link.source(graphTrans[extraTrans]);
+                                    link.attr('line/stroke', '#fe854f');
                                     graphLinks.push(link);
 
                                     loopTrans.push(extraTrans);
