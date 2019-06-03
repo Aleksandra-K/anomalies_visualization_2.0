@@ -94,8 +94,8 @@
                 let paper = new joint.dia.Paper({
                     el: document.getElementById('canvas'),
                     model: graph,
-                    width: 700,
-                    height: 900,
+                    width: 800,
+                    height: 1000,
                     gridSize: 1
                 });
 
@@ -113,8 +113,9 @@
                 let currWidth = 200;
                 let graphPlaces = {};
                 let graphTrans = {};
+                let loopTrans = [];
                 let graphLinks = [];
-                this._make_graph(visited, graphPlaces, graphTrans, graphLinks, fSet, current, currHeight, currWidth);
+                this._make_graph(visited, graphPlaces, graphTrans, graphLinks, loopTrans, fSet, current, currHeight, currWidth);
                 console.log('=================================');
                 console.log('places:');
                 console.log(graphPlaces)
@@ -131,7 +132,7 @@
                 graphLinks.forEach(link => link.addTo(graph))
                 console.log(paper)
             },
-            _make_graph(visited, graphPlaces, graphTrans, graphLinks, fSet, current, height, width) {
+            _make_graph(visited, graphPlaces, graphTrans, graphLinks, loopTrans, fSet, current, height, width) {
                 if(!visited.includes(false))
                     return;
                 else {
@@ -155,25 +156,35 @@
                                 currP = tuple[1];
                                 currTr = tuple[0];
                             }
+
+                            debugger
                             // добавить  place, если нет
-                            if (! (currP in graphPlaces)) {
+                            if (! (currP in graphPlaces) && !this._check_place(currP)) {
                                 let el = new joint.shapes.pn.Place();
                                 el.resize(30,30);
-                                el.position(width + 50, height + 20);
+                                el.position(width + 40, height + 20);
                                 height = height + 50;
                                 graphPlaces[currP] = el;
                             }
+
+                            let extraTrans;
+                            let number;
                             // добавить transition, если нет
+                            if(currTr.includes(SYMBOL_LOOP_START)) {
+                                // debugger
+                                extraTrans = currTr[2];
+                                number = currTr[3];
+                                currTr = currTr[1];
+                            }
                             if(! (currTr in graphTrans)) {
                                 let el = new joint.shapes.standard.Rectangle();
                                 el.resize(100, 50);
                                 el.position(width, height + 40);
                                 let text = currTr.replace(SYMBOL_TIME, "");
                                 text = text.replace(SYMBOL_BAD, "");
-                                if (!text.includes(SYMBOL_LOOP_START)) {
-                                    text = this.decodeSymbol(text);
-                                    text = this.decodeTransition(text);
-                                }
+                                text = this.decodeSymbol(text);
+                                text = this.decodeTransition(text);
+
                                 if (currTr.includes(SYMBOL_BAD)) {
                                     el.attr({
                                         body: {
@@ -203,37 +214,79 @@
                                     width = width - 110;
                                 }
                                 graphTrans[currTr] = el;
+
                             }
 
-                            let link;
-                            // добавить link
-                            if(currTr.includes(SYMBOL_TIME) && currTr === tuple[1]) {
-                                link = new joint.shapes.standard.Link();
-                                link.attr({
-                                    line: {
-                                        targetMarker: {
-                                            type: 'image',
-                                            'xlink:href': 'https://image.flaticon.com/icons/svg/148/148933.svg',
-                                            'width': 25,
-                                            'height': 25,
-                                            'y': -12
+                            if(! this._check_place(currP)) {
+
+                                let link;
+                                // добавить link
+                                if(currTr.includes(SYMBOL_TIME) && currTr === tuple[1]) {
+                                    link = new joint.shapes.standard.Link();
+                                    link.attr({
+                                        line: {
+                                            targetMarker: {
+                                                type: 'image',
+                                                'xlink:href': 'https://image.flaticon.com/icons/svg/148/148933.svg',
+                                                'width': 25,
+                                                'height': 25,
+                                                'y': -12
+                                            }
                                         }
-                                    }
-                                });
-                            } else {
-                                link = new joint.shapes.pn.Link();
-                            }
-                            if (currP === tuple[0]) {
-                                link.source(graphPlaces[currP]);
-                                link.target(graphTrans[currTr]);
-                            } else {
-                                link.target(graphPlaces[currP]);
-                                link.source(graphTrans[currTr]);
+                                    });
+                                } else {
+                                    link = new joint.shapes.pn.Link();
+                                }
+                                if (currP === tuple[0]) {
+                                    link.source(graphPlaces[currP]);
+                                    link.target(graphTrans[currTr]);
+                                } else {
+                                    link.target(graphPlaces[currP]);
+                                    link.source(graphTrans[currTr]);
+                                }
+
+                                graphLinks.push(link);
+
+
+                                if (loopTrans.length > 0) {
+                                    let link = new joint.shapes.pn.Link();
+                                    let loop = loopTrans.pop();
+                                    link.source(graphPlaces[currP]);
+                                    link.target(graphTrans[loop]);
+                                    graphLinks.push(link);
+                                }
+
+                                if(! (extraTrans in graphTrans) && typeof extraTrans !== 'undefined') {
+                                    let el = new joint.shapes.standard.Rectangle();
+                                    el.resize(100, 50);
+                                    el.position(width + 150, height + 40);
+                                    let text = extraTrans;
+                                    text = this.decodeSymbol(text);
+                                    text = this.decodeTransition(text);
+                                    el.attr({
+                                        body: {
+                                            fill: '#89baff'
+                                        },
+                                        label: {
+                                            text: text,
+                                            fill: 'navy(16)',
+                                            textWrap: 'true'
+                                        }
+                                    });
+                                    graphTrans[extraTrans] = el;
+
+                                    let link = new joint.shapes.standard.Link();
+                                    link.target(graphPlaces[currP]);
+                                    link.source(graphTrans[extraTrans]);
+                                    graphLinks.push(link);
+
+                                    loopTrans.push(extraTrans);
+
+                                }
                             }
 
-                            graphLinks.push(link);
                         }
-                        this._make_graph(visited, graphPlaces, graphTrans, graphLinks, fSet, tuple[1], height, width);
+                        this._make_graph(visited, graphPlaces, graphTrans, graphLinks, loopTrans, fSet, tuple[1], height, width);
                     }
                 }
             },
@@ -244,6 +297,19 @@
                         currents.push(array[i]);
                 }
                 return currents;
+            },
+            _check_place(place) {
+                if (place.length === 1) {
+                    return false;
+                }
+                let plArr = place.split("},{");
+                if (plArr[1].length < plArr[0].length) {
+                    let str = plArr[1].replace("}", "");
+                    return plArr[0].includes(str)
+                } else {
+                    let str = plArr[0].replace("P{", "");
+                    return plArr[1].includes(str)
+                }
             }
         }
     }
